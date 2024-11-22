@@ -3,20 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function Page() {
-  
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [showSender, setShowSender] = useState<boolean>(false);
+
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [pc, setPc] = useState<RTCPeerConnection | null>(null);
+  const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
+  const MyVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8080');
+    setSocket(socket);
 
     socket.onopen = () => {
       socket.send(JSON.stringify({
         type: 'receiver'
       }));
+      startReceivingData(socket);
     };
-    
-    startReceivingData(socket);
+
     return () => {
       // Clean up WebSocket connection
       socket.close();
@@ -26,44 +30,112 @@ export default function Page() {
   const startReceivingData = async (socket: WebSocket) => {
 
     const pc = new RTCPeerConnection();
+    setPc(pc);
+
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const videoTrack = stream.getVideoTracks()[0];
+    setlocalVideoTrack(videoTrack);
+    pc.addTrack(videoTrack, stream);
+    if(MyVideoRef.current){
+      MyVideoRef.current.srcObject = new MediaStream([videoTrack])
+    }
 
     // video track
     pc.ontrack = (event) => {
-      console.log('Track func is logging!');
-      if(videoRef.current){
-        videoRef.current.srcObject = new MediaStream([event.track]);
-        videoRef.current.play().catch((error) => {
+      if (SenderVideoRef.current) {
+        SenderVideoRef.current.srcObject = new MediaStream([event.track]);
+        SenderVideoRef.current.play().catch((error) => {
           console.error('Video playback failed:', error);
         });
-        setShowSender(true); 
       }
-    }
+    };
+
+    pc.onicecandidate = event => {
+      if (event.candidate) {
+        socket.send(JSON.stringify({ type: 'iceCandidate', candidate: event.candidate }));
+      }
+    };
 
     socket.onmessage = async (event) => {
       const message = JSON.parse(event.data);
 
-      if(message.type === 'createOffer'){
+      if (message.type === 'createOffer') {
         pc.setRemoteDescription(message.sdp).then(() => {
           pc.createAnswer().then((answer) => {
             pc.setLocalDescription(answer);
             socket.send(JSON.stringify({
-              type : 'createAnswer',
-              sdp : answer
+              type: 'createAnswer',
+              sdp: answer
             }))
           })
         })
       }
-      else if(message.type === 'iceCandidate'){
+      else if (message.type === 'iceCandidate') {
         await pc.addIceCandidate(message.candidate);
       }
-   };
+    };
   };
+
+  const startSendingData = async () => {
+
+    // If not connected to socket then just 'return'
+    if (!socket) {
+      alert('Socket Connection is a Pre-requisite!🔴')
+      return;
+    };
+
+    if (pc) {
+      pc.onicecandidate = ((event) => {
+        if (event.candidate) {
+          socket?.send(JSON.stringify({
+            type: 'iceCandidate',
+            candidate: event.candidate
+          }))
+        }
+      });
+    }
+  };
+
+  useEffect(() => {
+    if(MyVideoRef.current){
+      MyVideoRef.current.play().catch((error) => {
+        console.error('Video playback failed:', error);
+      });
+    }
+  },[MyVideoRef]);
 
 
   return (
-    <div className="text-white flex justify-center items-center">
-      <p>Receiver</p>
-      <video autoPlay ref={videoRef}></video>
+    <div className="text-white flex flex-col gap-5 justify-center items-center">
+      <p className="text-center text-4xl font-bold">Receiver</p>
+      {socket && (
+        <button
+          onClick={startSendingData}
+          className="bg-yellow-500 rounded-md px-4 py-3 text-semibold text-black"
+        >
+          Join Now
+        </button>
+      )}
+
+      <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">
+        {
+          SenderVideoRef && (
+            <div className="flex justify-center items-center flex-col w-[45%]">
+              <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
+              <p>Peer's Video</p>
+            </div>
+          )
+        }
+
+        {
+          socket && MyVideoRef && (
+            <div className="flex justify-center items-center flex-col w-[300px]">
+              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-3 rounded-md w-full"></video>
+              <p>My Video</p>
+            </div>
+          )
+        }
+      </div>
     </div>
   );
 }
