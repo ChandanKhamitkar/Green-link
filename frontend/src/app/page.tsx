@@ -7,7 +7,8 @@ export default function Home() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [pc, setPc] = useState<RTCPeerConnection | null>(null);
   const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const MyVideoRef = useRef<HTMLVideoElement>(null);
+  const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8080');
@@ -68,6 +69,16 @@ export default function Home() {
     };
 
     gatherMedia(pc);
+
+    // Get Other Side's video track.
+    pc.ontrack = (event) => {
+      if (SenderVideoRef.current) {
+        SenderVideoRef.current.srcObject = new MediaStream([event.track]);
+        SenderVideoRef.current.play().catch((error) => {
+          console.error('Video playback failed:', error);
+        });
+      }
+    }
   };
 
   const gatherMedia = async (pc: RTCPeerConnection) => {
@@ -77,33 +88,47 @@ export default function Home() {
     // MediaStream
     const videoTrack = stream.getVideoTracks()[0]
     setlocalVideoTrack(videoTrack);
-    if (!videoRef.current) {
+    if (!MyVideoRef.current) {
       return;
     }
     stream.getTracks().forEach((track) => {
       pc?.addTrack(track);
     });
-    videoRef.current.srcObject = new MediaStream([videoTrack])
-    videoRef.current.play();
+    MyVideoRef.current.srcObject = new MediaStream([videoTrack])
+    MyVideoRef.current.play();
   };
 
   return(
-    <div className="text-white flex justify-center items-center">
-      <h1>Sender</h1>
+    <div className="text-white flex flex-col gap-5 justify-center items-center">
+      <h1 className="text-center text-4xl font-bold">Sender</h1>
       {socket && (
         <button
           onClick={startSendingData}
           className="bg-blue-500 rounded-md px-4 py-3 text-semibold"
         >
-          Send Data
+          Create an Instant Meet ⭕
         </button>
       )}
 
-      {
-        socket && videoRef && (
-          <video autoPlay ref={videoRef}></video>
-        )
-      }
+      <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">
+        {
+          socket && MyVideoRef && (
+            <div className="flex justify-center items-center flex-col w-[300px]">
+              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-3 rounded-md w-full"></video>
+              <p>My Video</p>
+            </div>
+          )
+        }
+
+        {
+          SenderVideoRef && (
+            <div className="flex justify-center items-center flex-col w-[45%]">
+              <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
+              <p>Peer's Video</p>
+            </div>
+          )
+        }
+      </div>
     </div>
   );
 }
