@@ -1,9 +1,11 @@
 // Receiver page
 'use client';
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 
 export default function Page() {
 
+  const {mid} = useParams<{mid: string}>();
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [pc, setPc] = useState<RTCPeerConnection | null>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -16,7 +18,9 @@ export default function Page() {
 
     socket.onopen = () => {
       socket.send(JSON.stringify({
-        type: 'receiver'
+        type: 'receiver',
+        userId: 'user098',
+        roomId: mid
       }));
       startReceivingData(socket);
     };
@@ -52,7 +56,12 @@ export default function Page() {
 
     pc.onicecandidate = event => {
       if (event.candidate) {
-        socket.send(JSON.stringify({ type: 'iceCandidate', candidate: event.candidate }));
+        socket.send(JSON.stringify({ 
+          type: 'iceCandidate', 
+          candidate: event.candidate,
+          userId: 'user098',
+          roomId: mid
+        }));
       }
     };
 
@@ -65,7 +74,9 @@ export default function Page() {
             pc.setLocalDescription(answer);
             socket.send(JSON.stringify({
               type: 'createAnswer',
-              sdp: answer
+              sdp: answer,
+              userId: 'user098',
+              roomId: mid
             }))
           })
         })
@@ -89,7 +100,9 @@ export default function Page() {
         if (event.candidate) {
           socket?.send(JSON.stringify({
             type: 'iceCandidate',
-            candidate: event.candidate
+            candidate: event.candidate,
+            userId: 'user098',
+            roomId: mid
           }))
         }
       });
