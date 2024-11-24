@@ -32,9 +32,10 @@ export default function Page() {
   }, []);
 
   const startReceivingData = async (socket: WebSocket) => {
-
+    console.log('Start receving data is being called.');
     const pc = new RTCPeerConnection();
     setPc(pc);
+    console.log('RTC connection is being created. on Receiver side.');
 
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const videoTrack = stream.getVideoTracks()[0];
@@ -65,11 +66,19 @@ export default function Page() {
       }
     };
 
+    // Notify the backend, that i am ready.
+    socket.send(JSON.stringify({
+      type: 'ready',
+      userId: 'user098',
+      roomId: mid
+    }));
+
     socket.onmessage = async (event) => {
       const message = JSON.parse(event.data);
 
       if (message.type === 'createOffer') {
-        pc.setRemoteDescription(message.sdp).then(() => {
+        console.log('Create offer to receiver side');
+        pc.setRemoteDescription(message.data).then(() => {
           pc.createAnswer().then((answer) => {
             pc.setLocalDescription(answer);
             socket.send(JSON.stringify({
@@ -82,7 +91,8 @@ export default function Page() {
         })
       }
       else if (message.type === 'iceCandidate') {
-        await pc.addIceCandidate(message.candidate);
+        console.log('Ice candidata to receiver side');
+        await pc.addIceCandidate(message.data);
       }
     };
   };
@@ -121,16 +131,8 @@ export default function Page() {
   return (
     <div className="text-white flex flex-col gap-5 justify-center items-center">
       <p className="text-center text-4xl font-bold">Receiver</p>
-      {socket && (
-        <button
-          onClick={startSendingData}
-          className="bg-yellow-500 rounded-md px-4 py-3 text-semibold text-black"
-        >
-          Join Now
-        </button>
-      )}
 
-      <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">
+      <div className="flex gap-3 justify-center items-center w-full">
         {
           SenderVideoRef && (
             <div className="flex justify-center items-center flex-col w-[45%]">

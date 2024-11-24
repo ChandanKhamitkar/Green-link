@@ -7,7 +7,12 @@ interface User {
     socket:  WebSocket | null
 }
 
-let rooms: { [roomId: string]: { users: User[] } } = {};
+interface Room {
+    users : User[];
+    buffer: Array<{type: string, data: any}>
+}
+
+let rooms: { [roomId: string]: Room } = {};
 
 wss.on('connection', function connection(ws){
     ws.on('error', console.error);
@@ -31,37 +36,63 @@ wss.on('connection', function connection(ws){
                                 id: message.userId,
                                 socket: ws
                             }
-                        ]
+                        ],
+                        buffer: []
                     }
                 };
                 console.log("Sender added to room successfully : RoomID: ", message.roomId, " UserId: ", message.userId);
             }
         }
-        else if(message.type === 'receiver'){
+        else if(message.type === 'receiver'){   
             // adding User to Room
-            rooms = {
-                ...rooms,
-                [message.roomId] : {
-                    users: [
-                        ...rooms[message.roomId].users,
-                        {
-                            id: message.userId,
-                            socket: ws
-                        }
-                    ]
-                }
-            }
+            rooms[message.roomId] = {
+                ...rooms[message.roomId],
+                users: [
+                    ...rooms[message.roomId].users,
+                    {
+                        id: message.userId,
+                        socket: ws
+                    }
+                ]
+            };
             console.log("Receiver added to room successfully : RoomID: ", message.roomId, " UserId: ", message.userId);
+
+            // check wheather the Reciver is ready to accep the buffer data.
+            ws.on('message', function (setupData: any){
+                const setupMessage = JSON.parse(setupData);
+                if(setupMessage.type === 'ready'){
+                    console.log("Reciver is ready, Sending buffer.");
+                    // Sending the buffer data.
+                    const bufferStored = rooms[message.roomId].buffer;
+                    bufferStored.forEach((item) => {
+                        console.log('--sending data to receiver--', item.type, Object.keys(item));
+                        ws.send(JSON.stringify(item));
+                    });
+                    // Clear the buffer data
+                    rooms[message.roomId].buffer = [];
+                }
+            }); 
+
+
         }
         else if(message.type === 'createOffer'){
             if(ws !== rooms[message.roomId]?.users[0]?.socket) return; // (Sender)
 
             console.log("CreateOffer Received : RoomID: ", message.roomId, " UserId: ", message.userId);
             // (Receiver)
-            rooms[message.roomId]?.users[1]?.socket?.send(JSON.stringify({
-                type: 'createOffer',
-                sdp: message.sdp
-            }));
+            const receiverSocket = rooms[message.roomId]?.users[1]?.socket;
+            if(receiverSocket){
+                receiverSocket?.send(JSON.stringify({
+                    type: 'createOffer',
+                    data: message.sdp
+                }));
+            }
+            else{
+                rooms[message.roomId].buffer.push({
+                    type: 'createOffer',
+                    data: message.sdp
+                })
+            }
         }
         else if(message.type === 'createAnswer'){
             if(ws !== rooms[message.roomId]?.users[1]?.socket) return; // (Receiver)
@@ -75,10 +106,20 @@ wss.on('connection', function connection(ws){
         else if(message.type === 'iceCandidate'){
             if(ws === rooms[message.roomId]?.users[0]?.socket){ // (Sender)
                 console.log("IceCandidate from Sender: RoomID: ", message.roomId, " UserId: ", message.userId);
-                rooms[message.roomId]?.users[1]?.socket?.send(JSON.stringify({ // (Receiver)
-                    type: 'iceCandidate',
-                    candidate: message.candidate
-                }))
+
+                const receiverSocket = rooms[message.roomId]?.users[1]?.socket;
+                if(receiverSocket){
+                    rooms[message.roomId]?.users[1]?.socket?.send(JSON.stringify({ // (Receiver)
+                        type: 'iceCandidate',
+                        data: message.candidate
+                    }))
+                }
+                else{
+                    rooms[message.roomId].buffer.push({
+                        type: 'iceCandidate',
+                        data: message.candidate
+                    });
+                }
             }
             else if(ws === rooms[message.roomId]?.users[1]?.socket){ // (Receiver)
                 console.log("IceCandidate from Receiver: RoomID: ", message.roomId, " UserId: ", message.userId);
@@ -89,8 +130,6 @@ wss.on('connection', function connection(ws){
             }
         }
     });
-
-    // ws.send('hello there, the websocket is running!');
 });
 
 function isRoomExists ( roomId: string ) : boolean {
