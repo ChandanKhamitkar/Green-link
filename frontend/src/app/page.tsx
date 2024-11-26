@@ -14,7 +14,7 @@ export default function Home() {
   return(
     <div className="bg-white text-white flex gap-5 justify-center items-center h-screen">
       {/* Create Instant Meet Button */}
-      <button onClick={() => router.push(`/sender/${roomID}`)} className="flex gap-3 justify-center items-center px-5 py-2 rounded-md bg-blue-500  font-semibold">
+      <button onClick={() => router.push(`/sender/${roomID}/host`)} className="flex gap-3 justify-center items-center px-5 py-2 rounded-md bg-blue-500  font-semibold">
         <span className="size-4"><IoIosVideocam /></span>
         <span className="text-base">Create Instant Meet</span>
       </button>

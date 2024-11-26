@@ -2,6 +2,7 @@
 'use client';
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import { MdOutlineContentCopy } from "react-icons/md";
 
 export default function Page() {
   
@@ -107,7 +108,7 @@ export default function Page() {
   };
 
   return(
-    <div className="text-white flex flex-col gap-5 justify-center items-center">
+    <div className="h-screen text-white flex flex-col gap-5 justify-center items-center relative">
       <h1 className="text-center text-4xl font-bold">Sender</h1>
 
       <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">
@@ -128,6 +129,17 @@ export default function Page() {
             </div>
           )
         }
+
+        <div className="flex justify-center items-center space-x-3 bg-white rounded-xl px-5 py-2 border border-slate-500 absolute bottom-10 left-7">
+          <p className="text-black/70 font-mono">http://localhost:3000/receiver/{mid}</p>
+
+          <p onClick={() => {
+            navigator.clipboard.writeText(`http://localhost:3000/receiver/${mid}`);
+            alert("Link copied to clipboard.")
+          }} className="cursor-pointer p-2 rounded-full flex justify-center items-center text-blue-600 hover:bg-slate-400">
+            <MdOutlineContentCopy />
+          </p>
+        </div>
       </div>
     </div>
   );
