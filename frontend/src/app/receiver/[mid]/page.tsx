@@ -13,7 +13,7 @@ export default function Page() {
   const MyVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
     setSocket(socket);
 
     socket.onopen = () => {

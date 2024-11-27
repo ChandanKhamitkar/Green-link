@@ -14,7 +14,8 @@ export default function Page() {
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
+    console.log('env = ', process.env.NEXT_PUBLIC_BACKEND_URL);
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
     setSocket(socket);
 
     socket.onopen = () => {
