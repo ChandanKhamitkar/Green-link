@@ -12,7 +12,8 @@ export default function Page() {
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
+    // const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
+    const socket = new WebSocket(`https://green-link-signaling-server.vercel.app/`);
     setSocket(socket);
 
     socket.onopen = () => {
