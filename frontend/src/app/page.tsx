@@ -1,134 +1,28 @@
-// Sender page
+// This page shows 2 options, 1-Create Instant Meet | 2-Join Now
 'use client';
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { v4 as uuidv4 } from 'uuid';
+import { IoIosVideocam } from "react-icons/io";
+import { MdArrowOutward } from "react-icons/md";
+
 
 export default function Home() {
 
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [pc, setPc] = useState<RTCPeerConnection | null>(null);
-  const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
-  const MyVideoRef = useRef<HTMLVideoElement>(null);
-  const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
-    setSocket(socket);
-
-    socket.onopen = () => {
-      socket.send(JSON.stringify({
-        type: 'sender'
-      }));
-    };
-
-    return () => {
-      // Clean up WebSocket connection
-      socket.close();
-    };
-  }, []);
-
-  const startSendingData = async () => {
-
-    // If not connected to socket then just 'return'
-    if(!socket) {
-      alert('Socket Connection is a Pre-requisite!🔴')
-      return;
-    };
-
-    // else Establish RTC connection
-    const pc = new RTCPeerConnection();
-    setPc(pc);
-    pc.onicecandidate = ((event) => {
-      if(event.candidate){
-        socket?.send(JSON.stringify({
-          type: 'iceCandidate',
-          candidate: event.candidate
-        }))
-      }
-    })
-
-    pc.onnegotiationneeded = async () => {
-      // offer from sender that is ( me )
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.send(JSON.stringify({
-        type: 'createOffer',
-        sdp: pc.localDescription
-      }));
-    }
-
-    // answer from receiver
-    socket.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'createAnswer') {
-        await pc.setRemoteDescription(message.sdp);
-      }
-      else if(message.type === 'iceCandidate'){
-        await pc.addIceCandidate(message.candidate);
-      }
-
-    };
-
-    gatherMedia(pc);
-
-    // Get Other Side's video track.
-    pc.ontrack = (event) => {
-      if (SenderVideoRef.current) {
-        SenderVideoRef.current.srcObject = new MediaStream([event.track]);
-        SenderVideoRef.current.play().catch((error) => {
-          console.error('Video playback failed:', error);
-        });
-      }
-    }
-  };
-
-  const gatherMedia = async (pc: RTCPeerConnection) => {
-    const stream = await window.navigator.mediaDevices.getUserMedia({
-      video: true,
-    })
-    // MediaStream
-    const videoTrack = stream.getVideoTracks()[0]
-    setlocalVideoTrack(videoTrack);
-    if (!MyVideoRef.current) {
-      return;
-    }
-    stream.getTracks().forEach((track) => {
-      pc?.addTrack(track);
-    });
-    MyVideoRef.current.srcObject = new MediaStream([videoTrack])
-    MyVideoRef.current.play();
-  };
+  const router = useRouter();
+  const roomID = uuidv4();
 
   return(
-    <div className="text-white flex flex-col gap-5 justify-center items-center">
-      <h1 className="text-center text-4xl font-bold">Sender</h1>
-      {socket && (
-        <button
-          onClick={startSendingData}
-          className="bg-blue-500 rounded-md px-4 py-3 text-semibold"
-        >
-          Create an Instant Meet ⭕
-        </button>
-      )}
-
-      <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">
-        {
-          socket && MyVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[300px]">
-              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-3 rounded-md w-full"></video>
-              <p>My Video</p>
-            </div>
-          )
-        }
-
-        {
-          SenderVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[45%]">
-              <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
-              <p>Peer's Video</p>
-            </div>
-          )
-        }
-      </div>
+    <div className="bg-white text-white flex gap-5 justify-center items-center h-screen">
+      {/* Create Instant Meet Button */}
+      <button onClick={() => router.push(`/sender/${roomID}/host`)} className="flex gap-3 justify-center items-center px-5 py-2 rounded-md bg-blue-500  font-semibold">
+        <span className="size-4"><IoIosVideocam /></span>
+        <span className="text-base">Create Instant Meet</span>
+      </button>
+      {/* Join Now Button */}
+      <button className="flex gap-3 justify-center items-center px-5 py-2 rounded-md bg-green-500 text-black font-semibold">
+        <span className="size-4"><MdArrowOutward /></span>
+        <span className="text-base">Join Now</span>
+      </button>
     </div>
   );
 }
