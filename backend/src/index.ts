@@ -1,6 +1,13 @@
+import express from "express";
+import { createServer } from "http";
+import cors from "cors";
 import { WebSocketServer, WebSocket } from "ws";
+import e from "express";
 
-const wss = new WebSocketServer({port: 8080});
+const app = express();
+const httpServer = createServer(app);
+app.use(cors());
+const wss = new WebSocketServer({ server: httpServer });
 
 interface User {
     id: string;
@@ -135,3 +142,8 @@ wss.on('connection', function connection(ws){
 function isRoomExists ( roomId: string ) : boolean {
     return Object.keys(rooms).includes(roomId);
 };
+
+const port = process.env.PORT || 7878;
+httpServer.listen(port, () => {
+    console.log('Listening to the port : ', port);
+});
