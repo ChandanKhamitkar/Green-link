@@ -1,15 +1,18 @@
 {
     "version": 2,
     "builds": [
-        {
-            "src": "index.js",
-            "use": "@vercel/node"
+      {
+        "src": "src/index.ts",
+        "use": "@vercel/typescript",
+        "config": {
+          "outputDirectory": "dist"
         }
+      }
     ],
     "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/index.js"
-        }
+      {
+        "src": "/(.*)",
+        "dest": "dist/index.js"
+      }
     ]
-}
+  }
