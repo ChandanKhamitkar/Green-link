@@ -14,7 +14,6 @@ export default function Page() {
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    console.log('env = ', process.env.NEXT_PUBLIC_BACKEND_URL);
     const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
     setSocket(socket);
 
@@ -30,7 +29,7 @@ export default function Page() {
       // Clean up WebSocket connection
       socket.close();
     };
-  }, []);
+  }, [mid]);
 
   const startSendingData = async (socket: WebSocket) => {
 

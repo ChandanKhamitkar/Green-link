@@ -15,10 +15,6 @@ export default function Navbar() {
       ];
     useEffect(() => {
         const date = new Date();
-        console.log('time =', date.toLocaleTimeString());
-        console.log('day =', date.getDay());
-        console.log('day =', date.getFullYear());
-
         setTimSpace(`${date.toLocaleTimeString()} . ${daysOfWeek[date.getDay()]} . ${date.getFullYear()} `)
     }, []);
     return(

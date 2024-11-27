@@ -29,7 +29,7 @@ export default function Page() {
       // Clean up WebSocket connection
       socket.close();
     };
-  }, []);
+  }, [mid]);
 
   const startReceivingData = async (socket: WebSocket) => {
     console.log('Start receving data is being called.');
