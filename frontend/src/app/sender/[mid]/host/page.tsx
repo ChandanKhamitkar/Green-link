@@ -8,8 +8,6 @@ export default function Page() {
   
   const {mid} = useParams<{mid: string}>(); // Meet Id
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [pc, setPc] = useState<RTCPeerConnection | null>(null);
-  const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -41,7 +39,6 @@ export default function Page() {
 
     // else Establish RTC connection
     const pc = new RTCPeerConnection();
-    setPc(pc);
     pc.onicecandidate = ((event) => {
       if(event.candidate){
         socket?.send(JSON.stringify({
@@ -96,7 +93,6 @@ export default function Page() {
     })
     // MediaStream
     const videoTrack = stream.getVideoTracks()[0]
-    setlocalVideoTrack(videoTrack);
     if (!MyVideoRef.current) {
       return;
     }
@@ -125,16 +121,16 @@ export default function Page() {
           SenderVideoRef && (
             <div className="flex justify-center items-center flex-col w-[45%]">
               <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
-              <p>Peer's Video</p>
+              <p>Peer Video</p>
             </div>
           )
         }
 
         <div className="flex justify-center items-center space-x-3 bg-white rounded-xl px-5 py-2 border border-slate-500 absolute bottom-10 left-7">
-          <p className="text-black/70 font-mono">{process.env.NEXT_PUBLIC_BACKEND_URL}/receiver/{mid}</p>
+          <p className="text-black/70 font-mono">{window.location.href.split('sender/')[0]}/receiver/{mid}</p>
 
           <p onClick={() => {
-            navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BACKEND_URL}/receiver/${mid}`);
+            navigator.clipboard.writeText(`${window.location.href.split('sender/')[0]}/receiver/${mid}`);
             alert("Link copied to clipboard.")
           }} className="cursor-pointer p-2 rounded-full flex justify-center items-center text-blue-600 hover:bg-slate-400">
             <MdOutlineContentCopy />

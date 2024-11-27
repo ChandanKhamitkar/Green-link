@@ -7,9 +7,7 @@ export default function Page() {
 
   const {mid} = useParams<{mid: string}>();
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [pc, setPc] = useState<RTCPeerConnection | null>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
-  const [localVideoTrack, setlocalVideoTrack] = useState<MediaStreamTrack | null>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -34,12 +32,10 @@ export default function Page() {
   const startReceivingData = async (socket: WebSocket) => {
     console.log('Start receving data is being called.');
     const pc = new RTCPeerConnection();
-    setPc(pc);
     console.log('RTC connection is being created. on Receiver side.');
 
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const videoTrack = stream.getVideoTracks()[0];
-    setlocalVideoTrack(videoTrack);
     pc.addTrack(videoTrack, stream);
     if(MyVideoRef.current){
       MyVideoRef.current.srcObject = new MediaStream([videoTrack])
@@ -97,27 +93,27 @@ export default function Page() {
     };
   };
 
-  const startSendingData = async () => {
+  // const startSendingData = async () => {
 
-    // If not connected to socket then just 'return'
-    if (!socket) {
-      alert('Socket Connection is a Pre-requisite!🔴')
-      return;
-    };
+  //   // If not connected to socket then just 'return'
+  //   if (!socket) {
+  //     alert('Socket Connection is a Pre-requisite!🔴')
+  //     return;
+  //   };
 
-    if (pc) {
-      pc.onicecandidate = ((event) => {
-        if (event.candidate) {
-          socket?.send(JSON.stringify({
-            type: 'iceCandidate',
-            candidate: event.candidate,
-            userId: 'user098',
-            roomId: mid
-          }))
-        }
-      });
-    }
-  };
+  //   if (pc) {
+  //     pc.onicecandidate = ((event) => {
+  //       if (event.candidate) {
+  //         socket?.send(JSON.stringify({
+  //           type: 'iceCandidate',
+  //           candidate: event.candidate,
+  //           userId: 'user098',
+  //           roomId: mid
+  //         }))
+  //       }
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     if(MyVideoRef.current){
@@ -137,7 +133,7 @@ export default function Page() {
           SenderVideoRef && (
             <div className="flex justify-center items-center flex-col w-[45%]">
               <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
-              <p>Peer's Video</p>
+              <p>Peer Video</p>
             </div>
           )
         }
