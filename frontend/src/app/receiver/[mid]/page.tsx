@@ -2,38 +2,41 @@
 'use client';
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import io from "socket.io-client"; 
 
 export default function Page() {
 
   const {mid} = useParams<{mid: string}>();
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [socket, setSocket] = useState<any>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
-    // const socket = new WebSocket(`https://green-link-signaling-server.vercel.app/`);
-    setSocket(socket);
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
+      autoConnect: false,
+      reconnection: true
+    });
+    
+    setSocket(newSocket);
 
-    socket.onopen = () => {
-      socket.send(JSON.stringify({
-        type: 'receiver',
+    newSocket.on("connect", () => {
+      console.log("Socket connected");
+      newSocket.emit("receiver", { 
         userId: 'user098',
         roomId: mid
-      }));
-      startReceivingData(socket);
-    };
+      });
+      startReceivingData(newSocket);
+    });
 
+    newSocket.connect();
     return () => {
-      // Clean up WebSocket connection
-      socket.close();
+      newSocket.disconnect();
     };
   }, [mid]);
 
-  const startReceivingData = async (socket: WebSocket) => {
+  const startReceivingData = async (socket: any) => {
     console.log('Start receving data is being called.');
     const pc = new RTCPeerConnection();
-    console.log('RTC connection is being created. on Receiver side.');
 
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const videoTrack = stream.getVideoTracks()[0];
@@ -54,67 +57,39 @@ export default function Page() {
 
     pc.onicecandidate = event => {
       if (event.candidate) {
-        socket.send(JSON.stringify({ 
-          type: 'iceCandidate', 
+        socket.emit("iceCandidate", {
           candidate: event.candidate,
           userId: 'user098',
           roomId: mid
-        }));
+        });
       }
     };
 
     // Notify the backend, that i am ready.
-    socket.send(JSON.stringify({
-      type: 'ready',
+    socket.emit("ready", {
       userId: 'user098',
       roomId: mid
-    }));
+    });
 
-    socket.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-
-      if (message.type === 'createOffer') {
-        console.log('Create offer to receiver side');
-        pc.setRemoteDescription(message.data).then(() => {
-          pc.createAnswer().then((answer) => {
-            pc.setLocalDescription(answer);
-            socket.send(JSON.stringify({
-              type: 'createAnswer',
-              sdp: answer,
-              userId: 'user098',
-              roomId: mid
-            }))
-          })
+    socket.on("createOffer", async(event: any) => {
+      const {data} = event;
+      pc.setRemoteDescription(data).then(() => {
+        pc.createAnswer().then((answer) => {
+          pc.setLocalDescription(answer);
+          socket.emit("createAnswer",{
+            sdp: answer,
+            userId: 'user098',
+            roomId: mid
+          });
         })
-      }
-      else if (message.type === 'iceCandidate') {
-        console.log('Ice candidata to receiver side');
-        await pc.addIceCandidate(message.data);
-      }
-    };
+      })
+    });
+
+    socket.on("iceCandidate", async (event:any) => {
+      const {data} = event;
+      await pc.addIceCandidate(data);
+    });
   };
-
-  // const startSendingData = async () => {
-
-  //   // If not connected to socket then just 'return'
-  //   if (!socket) {
-  //     alert('Socket Connection is a Pre-requisite!🔴')
-  //     return;
-  //   };
-
-  //   if (pc) {
-  //     pc.onicecandidate = ((event) => {
-  //       if (event.candidate) {
-  //         socket?.send(JSON.stringify({
-  //           type: 'iceCandidate',
-  //           candidate: event.candidate,
-  //           userId: 'user098',
-  //           roomId: mid
-  //         }))
-  //       }
-  //     });
-  //   }
-  // };
 
   useEffect(() => {
     if(MyVideoRef.current){

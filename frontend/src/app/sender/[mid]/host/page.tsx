@@ -3,34 +3,39 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { MdOutlineContentCopy } from "react-icons/md";
+import io from "socket.io-client"; 
 
 export default function Page() {
   
   const {mid} = useParams<{mid: string}>(); // Meet Id
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [socket, setSocket] = useState<any>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}`);
-    // const socket = new WebSocket(`https://green-link-signaling-server.vercel.app/`);
-    setSocket(socket);
-
-    socket.onopen = () => {
-      socket.send(JSON.stringify({
-        type: 'sender',
+    const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
+      autoConnect: false,
+      reconnection: true
+    });
+    setSocket(newSocket);
+    newSocket.on("connect", () => {
+      console.log("Socket connected");
+      newSocket.emit("sender", { 
         userId: 'user123',
         roomId: mid
-      }));
-      startSendingData(socket);
-    };
+      });
+      startSendingData(newSocket);
+    });
+
+    newSocket.connect();
+    
     return () => {
       // Clean up WebSocket connection
-      socket.close();
+      newSocket.disconnect();
     };
   }, [mid]);
 
-  const startSendingData = async (socket: WebSocket) => {
+  const startSendingData = async (socket: any) => {
 
     // If not connected to socket then just 'return'
     if(!socket) {
@@ -40,40 +45,40 @@ export default function Page() {
 
     // else Establish RTC connection
     const pc = new RTCPeerConnection();
-    pc.onicecandidate = ((event) => {
-      if(event.candidate){
-        socket?.send(JSON.stringify({
-          type: 'iceCandidate',
-          candidate: event.candidate,
-          userId: 'user123',
-          roomId: mid
-        }))
-      }
-    })
 
     pc.onnegotiationneeded = async () => {
       // offer from sender that is ( me )
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      socket.send(JSON.stringify({
-        type: 'createOffer',
+      console.log('create offer sent');
+      socket.emit("createOffer", {
         sdp: pc.localDescription,
         userId: 'user123',
         roomId: mid
-      }));
-    }
+      });
+    };
+
+    pc.onicecandidate = ((event) => {
+      if(event.candidate){
+        console.log('event.candidate: ', event.candidate);
+        console.log('sending ice candidate');
+        socket.emit("iceCandidate", {
+          candidate: event.candidate,
+          userId: 'user123',
+          roomId: mid
+        });
+      }
+    });
 
     // answer from receiver
-    socket.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'createAnswer') {
-        await pc.setRemoteDescription(message.sdp);
-      }
-      else if(message.type === 'iceCandidate'){
-        await pc.addIceCandidate(message.candidate);
-      }
-
-    };
+    socket.on("createAnswer", async (event:any) => { 
+      const {data} = event;
+      await pc.setRemoteDescription(data);
+    });
+    socket.on("iceCandidate", async (event:any) => { 
+      const {data} = event;
+      await pc.addIceCandidate(data);
+     });
 
     gatherMedia(pc);
 
@@ -128,10 +133,10 @@ export default function Page() {
         }
 
         <div className="flex justify-center items-center space-x-3 bg-white rounded-xl px-5 py-2 border border-slate-500 absolute bottom-10 left-7">
-          <p className="text-black/70 font-mono">{window.location.href.split('sender/')[0]}/receiver/{mid}</p>
+          <p className="text-black/70 font-mono">{window.location.href.split('sender/')[0]}receiver/{mid}</p>
 
           <p onClick={() => {
-            navigator.clipboard.writeText(`${window.location.href.split('sender/')[0]}/receiver/${mid}`);
+            navigator.clipboard.writeText(`${window.location.href.split('sender/')[0]}receiver/${mid}`);
             alert("Link copied to clipboard.")
           }} className="cursor-pointer p-2 rounded-full flex justify-center items-center text-blue-600 hover:bg-slate-400">
             <MdOutlineContentCopy />
