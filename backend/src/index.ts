@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 
 interface User {
     id: string;
-    socket:  string
+    socketId:  string
 }
 
 interface Room {
@@ -28,34 +28,34 @@ interface Room {
 
 let rooms: { [roomId: string]: Room } = {};
 
-io.on('connection', function connection(ws){
-    ws.on('error', console.error);
+io.on('connection', function connection(socket){
+    socket.on('error', console.error);
 
-    ws.on("disconnect", () => {
-        console.log("Socket Disconnected: ", ws.id);
+    socket.on("disconnect", () => {
+        console.log("Socket Disconnected: ", socket.id);
     })
     
     // SENDER
-    ws.on('sender', (message) => {
+    socket.on('sender', (message) => {
         const { roomId, userId } = message;
         let roomIdExists : boolean = isRoomExists(roomId);
         
         if(!roomIdExists){
             rooms[roomId] = { users: [] , buffer: []};
-            rooms[roomId].users.push({ id: userId, socket: ws.id });
+            rooms[roomId].users.push({ id: userId, socketId: socket.id });
             console.log("Sender added to room:", roomId, userId);
         }
     });
 
     // RECEIVER
-    ws.on('receiver', (message) => {
+    socket.on('receiver', (message) => {
         const { roomId, userId } = message;
-        rooms[roomId].users.push({ id: userId, socket: ws.id });
+        rooms[roomId].users.push({ id: userId, socketId: socket.id });
         console.log("Receiver added to room:", roomId, userId);
     });
 
     // RECEIVER ON READY
-    ws.on("ready", (message) => {
+    socket.on("ready", (message) => {
       console.log("Receiver is ready, Sending buffer.");
       const bufferStored = rooms[message.roomId].buffer;
 
@@ -68,7 +68,7 @@ io.on('connection', function connection(ws){
         const receiver = room.users.find(user => user.id === message.userId);
 
         if(receiver){
-            io.to(receiver.socket).emit(item.type, { data : item.data });
+            io.to(receiver.socketId).emit(item.type, { data : item.data });
         }
       });
 
@@ -77,17 +77,17 @@ io.on('connection', function connection(ws){
     }); 
 
     // CREATE OFFER
-    ws.on('createOffer', (message) => {
+    socket.on('createOffer', (message) => {
         console.log('create answer from sender');
         const { roomId, userId, sdp } = message;
         const room = rooms[roomId];
         if (!room) return;
 
-        //Find the receiver's socket
+        //Find the receiver's socketId
         const receiver = room.users.find(user => user.id !== userId);
 
         if (receiver) {
-            io.to(receiver.socket).emit("createOffer", { data : sdp });
+            io.to(receiver.socketId).emit("createOffer", { data : sdp });
         }
         else{
             console.log('Adding to buffer : createOffer');
@@ -99,28 +99,28 @@ io.on('connection', function connection(ws){
     });
 
     // CREATE ANSWER
-    ws.on("createAnswer", (message) => {
+    socket.on("createAnswer", (message) => {
         const { roomId, userId, sdp } = message;
         const room = rooms[roomId];
         if(!room) return;
         
         const sender =  room.users.find(user => user.id !== userId);
         if(sender){
-            io.to(sender.socket).emit('createAnswer', { data : sdp });
+            io.to(sender.socketId).emit('createAnswer', { data : sdp });
 
         }        
     });
 
     // ICE CANDIDATE
-    ws.on("iceCandidate", (message) => {
+    socket.on("iceCandidate", (message) => {
         console.log('Ice candidate from : ', message.userId);
         const { roomId, candidate } = message;
         const room = rooms[roomId];
         if (!room) return;
         
-        if(ws.id === room.users[0].socket){
+        if(socket.id === room.users[0].socketId){
             console.log('ice candidate from sender');
-            const receiver = room?.users[1]?.socket;
+            const receiver = room?.users[1]?.socketId;
             if(receiver){
                 io.to(receiver).emit("iceCandidate", { data : candidate });
             }
@@ -132,8 +132,8 @@ io.on('connection', function connection(ws){
                 });
             }
         }
-        else if(ws.id === room.users[1].socket){
-            const sender = room.users[0]?.socket;
+        else if(socket.id === room.users[1].socketId){
+            const sender = room.users[0]?.socketId;
             io.to(sender).emit("iceCandidate", { data : candidate });
         }
     });
