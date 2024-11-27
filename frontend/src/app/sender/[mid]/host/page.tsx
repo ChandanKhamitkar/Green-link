@@ -132,10 +132,10 @@ export default function Page() {
         }
 
         <div className="flex justify-center items-center space-x-3 bg-white rounded-xl px-5 py-2 border border-slate-500 absolute bottom-10 left-7">
-          <p className="text-black/70 font-mono">http://localhost:3000/receiver/{mid}</p>
+          <p className="text-black/70 font-mono">{process.env.NEXT_PUBLIC_BACKEND_URL}/receiver/{mid}</p>
 
           <p onClick={() => {
-            navigator.clipboard.writeText(`http://localhost:3000/receiver/${mid}`);
+            navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BACKEND_URL}/receiver/${mid}`);
             alert("Link copied to clipboard.")
           }} className="cursor-pointer p-2 rounded-full flex justify-center items-center text-blue-600 hover:bg-slate-400">
             <MdOutlineContentCopy />
