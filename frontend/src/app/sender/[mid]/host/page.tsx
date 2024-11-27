@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Sender page
 'use client';
 import { useEffect, useRef, useState } from "react";

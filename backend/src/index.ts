@@ -6,8 +6,10 @@ import {Server} from "socket.io";
 const app = express();
 const httpServer = createServer(app);
 const corsOptions = {
-    origin: "*",
+    origin: "https://green-link-delta.vercel.app/",
     methods: ["GET", "POST"],
+    allowedHeaders : ['Content-Type', 'Authorization'],
+    credentials : true
 };
 app.use(cors(corsOptions));
 const io = new Server(httpServer, {
