@@ -7,7 +7,7 @@ const app = express();
 const httpServer = createServer(app);
 const corsOptions = {
     origin: ["https://green-link-delta.vercel.app", "http://localhost:3000"],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "OPTIONS", "PUT", "POST"],
     allowedHeaders : ['Content-Type', 'Authorization'],
     credentials : true
 };
