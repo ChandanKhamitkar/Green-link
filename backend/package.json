@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "vercel dev",
-    "start": "vercel start",
-    "deploy": "vercel",
-    "build" : "tsc -b"
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "deploy": "npm run build && vercel"
   },
   "keywords": [],
   "author": "",
