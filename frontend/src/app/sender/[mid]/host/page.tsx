@@ -6,8 +6,7 @@ import { useParams } from "next/navigation";
 import { MdOutlineContentCopy } from "react-icons/md";
 import io from "socket.io-client"; 
 
-export default function Page() {
-  
+export default function Page() {  
   const {mid} = useParams<{mid: string}>(); // Meet Id
   const [socket, setSocket] = useState<any>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
