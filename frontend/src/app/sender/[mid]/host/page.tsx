@@ -138,7 +138,7 @@ export default function Page() {
 
           <p onClick={() => {
             navigator.clipboard.writeText(`${window.location.href.split('sender/')[0]}receiver/${mid}`);
-            toast("Link copied to clipboard.")
+            toast.success("Link copied to clipboard.")
           }} className="cursor-pointer p-2 rounded-full flex justify-center items-center text-blue-600 hover:bg-slate-400">
             <MdOutlineContentCopy />
           </p>
