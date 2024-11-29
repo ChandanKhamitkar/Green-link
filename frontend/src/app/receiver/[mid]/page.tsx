@@ -12,6 +12,7 @@ export default function Page() {
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
 
+
   useEffect(() => {
     const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
       autoConnect: false,

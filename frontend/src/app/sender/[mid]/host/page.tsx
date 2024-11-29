@@ -31,6 +31,7 @@ export default function Page() {
     newSocket.connect();
     
     return () => {
+      newSocket.emit("clearBuffer", { roomId : mid });
       // Clean up WebSocket connection
       newSocket.disconnect();
     };

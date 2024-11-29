@@ -31,6 +31,14 @@ let rooms: { [roomId: string]: Room } = {};
 io.on('connection', function connection(socket){
     socket.on('error', console.error);
 
+    // CLEAR BUFFER
+    socket.on("clearBuffer", (message) => {
+        const { roomId } = message;
+        // Clear the buffer data
+        rooms[roomId].buffer = [];
+    });
+
+    // DISCONNECT
     socket.on("disconnect", () => {
         console.log("Socket Disconnected: ", socket.id);
     })
@@ -50,6 +58,13 @@ io.on('connection', function connection(socket){
     // RECEIVER
     socket.on('receiver', (message) => {
         const { roomId, userId } = message;
+
+        // If user receiver exits
+        if(rooms[roomId]?.users.length === 2){
+            console.log("Receiver already exists.");
+            rooms[roomId].users[1].socketId === socket.id;
+            return;
+        }
         rooms[roomId].users.push({ id: userId, socketId: socket.id });
         console.log("Receiver added to room:", roomId, userId);
     });
@@ -71,9 +86,6 @@ io.on('connection', function connection(socket){
             io.to(receiver.socketId).emit(item.type, { data : item.data });
         }
       });
-
-      // Clear the buffer data
-      rooms[message.roomId].buffer = [];
     }); 
 
     // CREATE OFFER
