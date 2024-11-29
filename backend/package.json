@@ -5,8 +5,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js",
-    "deploy": "npm run build && vercel"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",

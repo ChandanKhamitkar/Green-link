@@ -62,7 +62,6 @@ export default function Page() {
 
     pc.onicecandidate = ((event) => {
       if(event.candidate){
-        console.log('event.candidate: ', event.candidate);
         console.log('sending ice candidate');
         socket.emit("iceCandidate", {
           candidate: event.candidate,
