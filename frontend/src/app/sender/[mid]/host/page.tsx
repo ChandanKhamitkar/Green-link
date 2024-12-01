@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { MdOutlineContentCopy } from "react-icons/md";
 import io from "socket.io-client"; 
 import toast from "react-hot-toast"
+import { iceConfiguration } from "@/lib/iceConfig";
 
 export default function Page() {  
   const {mid} = useParams<{mid: string}>(); // Meet Id
@@ -43,20 +44,6 @@ export default function Page() {
     if(!socket) {
       alert('Socket Connection is a Pre-requisite!🔴')
       return;
-    };
-
-    // ICE configuration
-    const iceConfiguration = {
-      iceServers: [
-        {
-          urls: "stun:stun.l.google.com:19302", // Public STUN server
-        },
-        {
-          urls: 'turn:openrelay.metered.ca:80',
-          username: 'openrelayproject',
-          credentials: 'openrelayproject'
-        }
-      ]
     };
 
     // else Establish RTC connection

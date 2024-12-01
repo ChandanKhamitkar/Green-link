@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import io from "socket.io-client"; 
+import { iceConfiguration } from "@/lib/iceConfig";
 
 export default function Page() {
 
@@ -38,7 +39,7 @@ export default function Page() {
 
   const startReceivingData = async (socket: any) => {
     console.log('Start receving data is being called.');
-    const pc = new RTCPeerConnection();
+    const pc = new RTCPeerConnection(iceConfiguration);
 
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const videoTrack = stream.getVideoTracks()[0];
