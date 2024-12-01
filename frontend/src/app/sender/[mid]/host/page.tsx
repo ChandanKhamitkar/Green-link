@@ -45,8 +45,22 @@ export default function Page() {
       return;
     };
 
+    // ICE configuration
+    const iceConfiguration = {
+      iceServers: [
+        {
+          urls: "stun:stun.l.google.com:19302", // Public STUN server
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credentials: 'openrelayproject'
+        }
+      ]
+    };
+
     // else Establish RTC connection
-    const pc = new RTCPeerConnection();
+    const pc = new RTCPeerConnection(iceConfiguration);
 
     pc.onnegotiationneeded = async () => {
       // offer from sender that is ( me )
