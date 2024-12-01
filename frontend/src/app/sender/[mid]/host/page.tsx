@@ -74,10 +74,12 @@ export default function Page() {
 
     // answer from receiver
     socket.on("createAnswer", async (event:any) => { 
+      console.log('Create answer received from peer');
       const {data} = event;
       await pc.setRemoteDescription(data);
     });
     socket.on("iceCandidate", async (event:any) => { 
+      console.log('Ice candidate received from peer');
       const {data} = event;
       await pc.addIceCandidate(data);
      });
