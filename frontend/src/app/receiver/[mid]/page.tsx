@@ -3,12 +3,13 @@
 'use client';
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import io from "socket.io-client"; 
+import io from "socket.io-client";
 import { iceConfiguration } from "@/lib/iceConfig";
+import LeaveMeet from "@/components/buttons/LeaveMeet";
 
 export default function Page() {
 
-  const {mid} = useParams<{mid: string}>();
+  const { mid } = useParams<{ mid: string }>();
   const [socket, setSocket] = useState<any>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
@@ -19,12 +20,12 @@ export default function Page() {
       autoConnect: false,
       reconnection: true
     });
-    
+
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
       console.log("Socket connected");
-      newSocket.emit("receiver", { 
+      newSocket.emit("receiver", {
         userId: 'user098',
         roomId: mid
       });
@@ -44,7 +45,7 @@ export default function Page() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const videoTrack = stream.getVideoTracks()[0];
     pc.addTrack(videoTrack, stream);
-    if(MyVideoRef.current){
+    if (MyVideoRef.current) {
       MyVideoRef.current.srcObject = new MediaStream([videoTrack])
     }
 
@@ -74,12 +75,12 @@ export default function Page() {
       roomId: mid
     });
 
-    socket.on("createOffer", async(event: any) => {
-      const {data} = event;
+    socket.on("createOffer", async (event: any) => {
+      const { data } = event;
       pc.setRemoteDescription(data).then(() => {
         pc.createAnswer().then((answer) => {
           pc.setLocalDescription(answer);
-          socket.emit("createAnswer",{
+          socket.emit("createAnswer", {
             sdp: answer,
             userId: 'user098',
             roomId: mid
@@ -88,23 +89,26 @@ export default function Page() {
       })
     });
 
-    socket.on("iceCandidate", async (event:any) => {
-      const {data} = event;
+    socket.on("iceCandidate", async (event: any) => {
+      const { data } = event;
       await pc.addIceCandidate(data);
     });
   };
 
   useEffect(() => {
-    if(MyVideoRef.current){
+    if (MyVideoRef.current) {
       MyVideoRef.current.play().catch((error) => {
         console.error('Video playback failed:', error);
       });
     }
-  },[MyVideoRef]);
+  }, [MyVideoRef]);
 
+  const LeaveMeeting = async() => {
+    await socket.disconnect();
+  };
 
   return (
-    <div className="text-white flex flex-col gap-5 justify-center items-center">
+    <div className="h-screen text-white flex flex-col gap-5 justify-around items-center ">
       <p className="text-center text-4xl font-bold">Receiver</p>
 
       <div className="flex gap-3 justify-center items-center w-full">
@@ -126,6 +130,11 @@ export default function Page() {
           )
         }
       </div>
+      <div className="w-full flex justify-center items-center">
+          <p className="w-fit mx-auto">
+            <LeaveMeet fn={LeaveMeeting} />
+          </p>
+        </div>
     </div>
   );
 }
