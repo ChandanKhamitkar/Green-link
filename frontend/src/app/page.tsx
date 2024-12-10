@@ -21,7 +21,7 @@ export default function Home() {
           <span className="text-base">Create Instant Meet</span>
         </button>
         {/* Join Now Button */}
-        <button className="flex gap-3 justify-center items-center px-5 py-2 rounded-md bg-green-500 text-black font-semibold">
+        <button disabled className="flex gap-3 justify-center items-center px-5 py-2 rounded-md bg-green-500 text-black font-semibold">
           <span className="size-4"><MdArrowOutward /></span>
           <span className="text-base">Join Now</span>
         </button>

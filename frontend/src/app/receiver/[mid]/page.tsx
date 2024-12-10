@@ -42,7 +42,10 @@ export default function Page() {
     console.log('Start receving data is being called.');
     const pc = new RTCPeerConnection(iceConfiguration);
 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
     const videoTrack = stream.getVideoTracks()[0];
     pc.addTrack(videoTrack, stream);
     if (MyVideoRef.current) {

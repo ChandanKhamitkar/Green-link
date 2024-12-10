@@ -101,6 +101,7 @@ export default function Page() {
   const gatherMedia = async (pc: RTCPeerConnection) => {
     const stream = await window.navigator.mediaDevices.getUserMedia({
       video: true,
+      audio: true,
     })
     // MediaStream
     const videoTrack = stream.getVideoTracks()[0]
