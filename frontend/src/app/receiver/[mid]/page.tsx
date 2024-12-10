@@ -47,7 +47,9 @@ export default function Page() {
       audio: true
     });
     const videoTrack = stream.getVideoTracks()[0];
-    pc.addTrack(videoTrack, stream);
+    stream.getTracks().forEach((track) => {
+      pc?.addTrack(track);
+    });
     if (MyVideoRef.current) {
       MyVideoRef.current.srcObject = new MediaStream([videoTrack])
     }
