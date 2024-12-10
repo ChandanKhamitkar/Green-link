@@ -141,7 +141,7 @@ export default function Page() {
   };
   
   return (
-    <div className="h-screen text-white flex flex-col gap-5 justify-around items-center">
+    <div className="bg-[var(--main-color)] h-screen text-white flex flex-col gap-5 justify-around items-center">
       <h1 className="text-center text-4xl font-bold">Sender</h1>
 
       <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">

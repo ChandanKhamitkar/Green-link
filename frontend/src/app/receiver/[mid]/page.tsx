@@ -132,7 +132,7 @@ export default function Page() {
 
 
   return (
-    <div className="h-screen text-white flex flex-col gap-5 justify-around items-center ">
+    <div className="bg-[var(--main-color)] h-screen text-white flex flex-col gap-5 justify-around items-center ">
       <p className="text-center text-4xl font-bold">Receiver</p>
 
       <div className="flex gap-3 justify-center items-center w-full">
