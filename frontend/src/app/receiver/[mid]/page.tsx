@@ -12,8 +12,8 @@ export default function Page() {
   const { mid } = useParams<{ mid: string }>();
   const [socket, setSocket] = useState<any>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
+  const SenderAudioRef = useRef<HTMLAudioElement | null>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
-
 
   useEffect(() => {
     const newSocket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {
@@ -50,8 +50,6 @@ export default function Page() {
 calling `navigator.mediaDevices.getUserMedia()`. */
     // const videoTrack = stream.getVideoTracks()[0];
     // const audioTrack = stream.getAudioTracks()[0];
-    // pc.addTrack(videoTrack, stream);
-    // pc.addTrack(audioTrack, stream);
     stream.getTracks().forEach((track) => {
       console.log('Each of the track = ', track);
       pc?.addTrack(track);
@@ -63,10 +61,18 @@ calling `navigator.mediaDevices.getUserMedia()`. */
     // video track
     pc.ontrack = (event) => {
       console.log('event = ', event);
-      if (SenderVideoRef.current) {
+      if (SenderVideoRef.current && event.track.kind === 'video') {
         SenderVideoRef.current.srcObject = new MediaStream([event.track]);
         SenderVideoRef.current.play().catch((error) => {
           console.error('Video playback failed:', error);
+        });
+      }
+      else if(SenderAudioRef.current && event.track.kind === 'audio'){
+        SenderAudioRef.current.srcObject = new MediaStream([event.track]);
+        SenderAudioRef.current.play().then(() => {
+          console.log('Audio is playing...');
+        }).catch((error) => {
+          console.error('Audio Playback failed: ', error);
         });
       }
     };
@@ -128,6 +134,7 @@ calling `navigator.mediaDevices.getUserMedia()`. */
           SenderVideoRef && (
             <div className="flex justify-center items-center flex-col w-[45%]">
               <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
+              <audio id="senderAudioLayout" autoPlay ref={SenderAudioRef}></audio>
               <p>Peer Video</p>
             </div>
           )
