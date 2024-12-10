@@ -14,6 +14,7 @@ export default function Page() {
   const { mid } = useParams<{ mid: string }>(); // Meet Id
   const [socket, setSocket] = useState<any>(null);
   const MyVideoRef = useRef<HTMLVideoElement>(null);
+  const [meetStream, setMeetStream] = useState<MediaStream | null>(null);
   const SenderVideoRef = useRef<HTMLVideoElement | null>(null);
   const SenderAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -38,6 +39,7 @@ export default function Page() {
       newSocket.emit("clearBuffer", { roomId: mid });
       // Clean up WebSocket connection
       newSocket.disconnect();
+      StopMeeting();
     };
   }, [mid]);
 
@@ -91,7 +93,6 @@ export default function Page() {
 
     // Get Other Side's video track.
     pc.ontrack = (event) => {
-      console.log('event = ', event);
       if (SenderVideoRef.current && event.track.kind === 'video') {
         SenderVideoRef.current.srcObject = new MediaStream([event.track]);
         SenderVideoRef.current.play().catch((error) => {
@@ -101,7 +102,6 @@ export default function Page() {
       else if(SenderAudioRef.current && event.track.kind === 'audio'){
         SenderAudioRef.current.srcObject = new MediaStream([event.track]);
         SenderAudioRef.current.play().then(() => {
-          console.log('Audio is playing...');
         }).catch((error) => {
           console.error('Audio Playback failed: ', error);
         });
@@ -114,23 +114,32 @@ export default function Page() {
       video: true,
       audio: true
     });
+    setMeetStream(stream);
     // MediaStream
     const videoTrack = stream.getVideoTracks()[0]
     if (!MyVideoRef.current) {
       return;
     }
     stream.getTracks().forEach((track) => {
-      console.log('Each of the track = ', track);
       pc?.addTrack(track);
     });
     MyVideoRef.current.srcObject = new MediaStream([videoTrack])
     MyVideoRef.current.play();
   };
 
+  // Disconnect User from room
   const LeaveMeeting = async() => {
     await socket.disconnect();
+    StopMeeting();
   };
-
+  
+  const StopMeeting = async() => {
+    if(meetStream){
+      meetStream.getTracks().forEach((track) => track.stop());
+      setMeetStream(null);
+    }
+  };
+  
   return (
     <div className="h-screen text-white flex flex-col gap-5 justify-around items-center">
       <h1 className="text-center text-4xl font-bold">Sender</h1>
