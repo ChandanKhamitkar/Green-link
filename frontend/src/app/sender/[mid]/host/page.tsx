@@ -89,6 +89,7 @@ export default function Page() {
 
     // Get Other Side's video track.
     pc.ontrack = (event) => {
+      console.log('event = ', event);
       if (SenderVideoRef.current) {
         SenderVideoRef.current.srcObject = new MediaStream([event.track]);
         SenderVideoRef.current.play().catch((error) => {
@@ -101,14 +102,15 @@ export default function Page() {
   const gatherMedia = async (pc: RTCPeerConnection) => {
     const stream = await window.navigator.mediaDevices.getUserMedia({
       video: true,
-      audio: true,
-    })
+      audio: true
+    });
     // MediaStream
     const videoTrack = stream.getVideoTracks()[0]
     if (!MyVideoRef.current) {
       return;
     }
     stream.getTracks().forEach((track) => {
+      console.log('Each of the track = ', track);
       pc?.addTrack(track);
     });
     MyVideoRef.current.srcObject = new MediaStream([videoTrack])
@@ -136,7 +138,7 @@ export default function Page() {
         {
           SenderVideoRef && (
             <div className="flex justify-center items-center flex-col w-[45%]">
-              <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
+             <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
               <p>Peer Video</p>
             </div>
           )

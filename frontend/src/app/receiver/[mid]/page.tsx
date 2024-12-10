@@ -46,14 +46,23 @@ export default function Page() {
       video: true,
       audio: true
     });
-    const videoTrack = stream.getVideoTracks()[0];
-    pc.addTrack(videoTrack, stream);
+/* These lines of code are extracting the video and audio tracks from the media stream obtained by
+calling `navigator.mediaDevices.getUserMedia()`. */
+    // const videoTrack = stream.getVideoTracks()[0];
+    // const audioTrack = stream.getAudioTracks()[0];
+    // pc.addTrack(videoTrack, stream);
+    // pc.addTrack(audioTrack, stream);
+    stream.getTracks().forEach((track) => {
+      console.log('Each of the track = ', track);
+      pc?.addTrack(track);
+    });
     if (MyVideoRef.current) {
-      MyVideoRef.current.srcObject = new MediaStream([videoTrack])
+      MyVideoRef.current.srcObject = stream;
     }
 
     // video track
     pc.ontrack = (event) => {
+      console.log('event = ', event);
       if (SenderVideoRef.current) {
         SenderVideoRef.current.srcObject = new MediaStream([event.track]);
         SenderVideoRef.current.play().catch((error) => {
