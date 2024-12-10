@@ -141,14 +141,14 @@ export default function Page() {
   };
   
   return (
-    <div className="bg-[var(--main-color)] h-screen text-white flex flex-col gap-5 justify-around items-center">
+    <div className="bg-[var(--main-color)] h-screen text-white flex flex-col gap-5 justify-around items-center py-10">
       <h1 className="text-center text-4xl font-bold">Sender</h1>
 
-      <div className="flex flex-row-reverse gap-3 justify-center items-center w-full">
+      <div className="w-full h-full flex md:flex-row-reverse flex-col-reverse gap-3 justify-center items-center relative">
         {
           socket && MyVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[300px]">
-              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-3 rounded-md w-full"></video>
+            <div className="flex justify-center items-center flex-col mobile:w-[30%] w-[45%] absolute bottom-5 right-10">
+              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-2 rounded-md w-full"></video>
               <p>My Video</p>
             </div>
           )
@@ -156,8 +156,8 @@ export default function Page() {
 
         {
           SenderVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[45%]">
-             <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
+            <div className="flex justify-center items-center flex-col w-[50%]">
+             <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-2 rounded-md w-full"></video>
              <audio id="senderAudioLayout" autoPlay ref={SenderAudioRef}></audio>
               <p>Peer Video</p>
             </div>
@@ -165,8 +165,8 @@ export default function Page() {
         }
       </div>
       <div className="w-full flex justify-center gap-10 items-center">
-          <div className="flex justify-center items-center space-x-3 bg-white rounded-xl px-5 py-2 border border-slate-500">
-            <p className="text-black/70 font-mono">{window.location.href.split('sender/')[0]}receiver/{mid}</p>
+          <div className="md:w-fit w-[50%] md:overflow-auto overflow-hidden flex justify-center items-center space-x-3 bg-white rounded-xl px-5 py-2 border border-slate-500">
+            <p className="sm:text-base text-xs text-black/70 font-mono line-clamp-1 text-ellipsis ">{window.location.href.split('sender/')[0]}receiver/{mid}</p>
 
             <p onClick={() => {
               navigator.clipboard.writeText(`${window.location.href.split('sender/')[0]}receiver/${mid}`);

@@ -132,14 +132,14 @@ export default function Page() {
 
 
   return (
-    <div className="bg-[var(--main-color)] h-screen text-white flex flex-col gap-5 justify-around items-center ">
+    <div className="bg-[var(--main-color)] h-screen text-white flex flex-col gap-5 justify-around items-center py-10">
       <p className="text-center text-4xl font-bold">Receiver</p>
 
-      <div className="flex gap-3 justify-center items-center w-full">
+      <div className="w-full h-full flex md:flex-row flex-col gap-3 justify-center items-center relative">
         {
           SenderVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[45%]">
-              <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-3 rounded-md w-full"></video>
+            <div className="flex justify-center items-center flex-col w-[50%]">
+              <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-2 rounded-md w-full"></video>
               <audio id="senderAudioLayout" autoPlay ref={SenderAudioRef}></audio>
               <p>Peer Video</p>
             </div>
@@ -148,8 +148,8 @@ export default function Page() {
 
         {
           socket && MyVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[300px]">
-              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-3 rounded-md w-full"></video>
+            <div className="flex justify-center items-center flex-col mobile:w-[30%] w-[45%] absolute bottom-5 right-10">
+              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-2 rounded-md w-full"></video>
               <p>My Video</p>
             </div>
           )
