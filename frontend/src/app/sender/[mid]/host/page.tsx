@@ -147,8 +147,8 @@ export default function Page() {
       <div className="w-full h-full flex md:flex-row-reverse flex-col-reverse gap-3 justify-center items-center relative">
         {
           socket && MyVideoRef && (
-            <div className="flex justify-center items-center flex-col mobile:w-[30%] w-[45%] absolute bottom-5 right-10">
-              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-2 rounded-md w-full"></video>
+            <div className="flex justify-center items-center flex-col mobile:w-[30%] w-[45%] absolute bottom-5 right-10 overflow-clip">
+              <video autoPlay ref={MyVideoRef} className="border border-gray-50 p-2 rounded-md w-[200px] h-[150px]"></video>
               <p>My Video</p>
             </div>
           )
@@ -156,8 +156,8 @@ export default function Page() {
 
         {
           SenderVideoRef && (
-            <div className="flex justify-center items-center flex-col w-[50%]">
-             <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-2 rounded-md w-full"></video>
+            <div className="flex justify-center items-center flex-col w-[50%] overflow-clip">
+             <video id="senderVideoLayout" autoPlay ref={SenderVideoRef} className="border border-blue-500 p-2 rounded-md w-[400px] h-[300px]"></video>
              <audio id="senderAudioLayout" autoPlay ref={SenderAudioRef}></audio>
               <p>Peer Video</p>
             </div>
